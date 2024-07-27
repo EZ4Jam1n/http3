@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 CloudWeGo Authors
+ * Copyright 2022 CloudWeGo Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,8 @@ import (
 type conn struct {
 	rawConn interface{}
 	quicgo.EarlyConnection
+	handshakeCtx    context.Context
+	handshakeCancel context.CancelFunc
 }
 
 type versioner interface {
@@ -75,6 +77,23 @@ func (c *conn) CloseWithError(err network.ApplicationError, errMsg string) error
 	return c.EarlyConnection.CloseWithError(quicgo.ApplicationErrorCode(err.ErrCode()), errMsg)
 }
 
+func (c *conn) HandshakeComplete() context.Context {
+	return c.handshakeCtx
+}
+
 func newStreamConn(qc quicgo.EarlyConnection) network.StreamConn {
-	return &conn{qc, qc}
+	ctx, cancel := context.WithCancel(context.Background())
+	conn := &conn{
+		rawConn:         qc,
+		EarlyConnection: qc,
+		handshakeCtx:    ctx,
+		handshakeCancel: cancel,
+	}
+
+	go func() {
+		<-qc.HandshakeComplete()
+		cancel()
+	}()
+
+	return conn
 }

@@ -77,7 +77,7 @@ func (t *transport) serveConn(tlsConf *tls.Config, conn net.PacketConn) error {
 		quicConf.EnableDatagrams = true
 	}
 
-	var ln quic.EarlyListener
+	var ln *quic.EarlyListener
 	var err error
 	if conn == nil {
 		addr := t.Addr
@@ -96,7 +96,7 @@ func (t *transport) serveConn(tlsConf *tls.Config, conn net.PacketConn) error {
 	return t.serveListener(ln)
 }
 
-func (t *transport) serveListener(ln quic.EarlyListener) error {
+func (t *transport) serveListener(ln *quic.EarlyListener) error {
 	for {
 		conn, err := ln.Accept(context.Background())
 		if err != nil {

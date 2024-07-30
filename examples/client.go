@@ -20,11 +20,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/quic-go/quic-go"
-	"github.com/quic-go/quic-go/http3"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/quic-go/quic-go"
+	"github.com/quic-go/quic-go/http3"
 )
 
 func main() {
